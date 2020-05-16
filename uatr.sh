@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-tests=$(find . -mindepth 1 -maxdepth 1 -type d | grep '^test-' | grep -v -e hosting -e roles)
+root=$(git rev-parse --show-toplevel)
+echo "Using ${root}"
+
+tests=$(find $root -mindepth 1 -type d | grep '^test-' | grep -v -e hosting -e roles)
 tests_failed=0
 tests_succeeded=0
 tests_run=0
