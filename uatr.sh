@@ -11,13 +11,19 @@ tests_succeeded=0
 tests_run=0
 failed_list=""
 
-if [[ "$*" == "--inspect" ]]; then
+if [[ "$*" == *"--verbose"* ]]; then
+  verbose=1
+else
+  verbose=0
+fi
+
+if [[ "$*" == *"--inspect"* ]]; then
   inspect=1
 else
   inspect=0
 fi
 
-if [[ "$*" == "--debug" ]]; then
+if [[ "$*" == *"--debug"* ]]; then
   debug=1
 else
   debug=0
@@ -28,7 +34,7 @@ if [[ "${#tests}" == "0" ]]; then
   exit 1
 fi
 
-if [[ "$debug" == "1" ]]; then
+if [[ "$debug" != "1" ]]; then
   echo "Preparing test environment container"
   $loc/prepare-env.sh
 fi
@@ -60,14 +66,14 @@ for test in $tests; do
   # Do not check for key when connecting locally
   export ANSIBLE_HOST_KEY_CHECKING=False
  
-  if [[ "$debug" == "1" ]]; then
+  if [[ "$verbose" == "1" ]] || [[ "$debug" == "1" ]]; then
     params="-vvv"
   fi
 
   ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory $params &> ${test_path}/log
   test_result=$?
 
-  if [[ "$inspect" == "1" ]] && [[ "$debug" == "1" ]]; then
+  if [[ "$inspect" != "1" ]] && [[ "$debug" != "1" ]]; then
     docker stop ${test_name} &> /dev/null
   fi
 
@@ -86,7 +92,7 @@ for test in $tests; do
   rm ${test_path}/*.tar &> /dev/null
 done
 
-if [[ "$inspect" == "1" ]] && [[ "$debug" == "1" ]]; then
+if [[ "$inspect" != "1" ]] && [[ "$debug" != "1" ]]; then
   echo "Tearing down test environment"
   docker stop hosting-test
 fi
