@@ -59,7 +59,12 @@ for test in $tests; do
 
   # Do not check for key when connecting locally
   export ANSIBLE_HOST_KEY_CHECKING=False
-  ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory -vvv &> ${test_path}/log
+ 
+  if [[ "$debug" == "1" ]]; then
+    params="-vvv"
+  fi
+
+  ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory $params &> ${test_path}/log
   test_result=$?
 
   if [[ "$inspect" == "1" ]] && [[ "$debug" == "1" ]]; then
