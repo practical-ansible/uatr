@@ -1,28 +1,42 @@
 #!/usr/bin/env bash
 
 root=$(git rev-parse --show-toplevel)
+loc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+
 echo "Using ${root}"
 
-tests=$(find $root -mindepth 1 -type d | grep '^test-' | grep -v -e hosting -e roles)
+tests=$(find $root -mindepth 1 -type d -name "test-*")
 tests_failed=0
 tests_succeeded=0
 tests_run=0
 failed_list=""
+
+if [[ "$*" == "--inspect" ]]; then
+  inspect=1
+else
+  inspect=0
+fi
+
+if [[ "$*" == "--debug" ]]; then
+  debug=1
+else
+  debug=0
+fi
 
 if [[ "${#tests}" == "0" ]]; then
   echo "No tests found"
   exit 1
 fi
 
-if [[ "$1" != "debug" ]]; then
+if [[ "$debug" == "1" ]]; then
   echo "Preparing test environment container"
-  ./prepare-env.sh
+  $loc/prepare-env.sh
 fi
 
 PORT=$(docker port hosting-test 22 | cut -d ':' -f2)
 
 for test in $tests; do
-  test_name=${test:2}
+  test_name=$(basename ${test})
   test_path=$(realpath ${test})
   echo -en "\e[43m \e[30mRUNS \e[0m ${test_name}"
 
@@ -48,14 +62,14 @@ for test in $tests; do
   ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory -vvv &> ${test_path}/log
   test_result=$?
 
-  if [[ "$1" != "inspect" ]] && [[ "$1" != "debug" ]]; then
+  if [[ "$inspect" == "1" ]] && [[ "$debug" == "1" ]]; then
     docker stop ${test_name} &> /dev/null
   fi
 
   if [ $test_result -ne 0 ] ; then
     echo -e "\r\e[101m \e[30mFAIL \e[0m ${test_name}"
     cat ${test_path}/log 1>&2
-    failed_list="${test_name} ${failed_list}"
+    failed_list="${test_path} ${failed_list}"
     ((tests_failed=tests_failed+1))
   else
     echo -e "\r\e[102m \e[30mPASS \e[0m ${test_name}"
@@ -67,7 +81,7 @@ for test in $tests; do
   rm ${test_path}/*.tar &> /dev/null
 done
 
-if [[ "$1" != "inspect" ]] && [[ "$1" != "debug" ]]; then
+if [[ "$inspect" == "1" ]] && [[ "$debug" == "1" ]]; then
   echo "Tearing down test environment"
   docker stop hosting-test
 fi

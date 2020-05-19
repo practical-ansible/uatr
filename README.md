@@ -28,7 +28,7 @@ uatr
 If you want to inspect what was created, there is a feature just for you.
 
 ```shell
-uatr inspect
+uatr --inspect
 ```
 
 The test runner will then keep the container running and you can connect to it using 
