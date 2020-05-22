@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 root=$(git rev-parse --show-toplevel)
+role_name=$(basename ${root})
 loc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 echo "Using ${root}"
@@ -48,7 +49,7 @@ for test in $tests; do
 
   # Make role accessible
   mkdir ${test_path}/roles 2> /dev/null
-  ln -s ../../.. ${test_path}/roles/practical-ansible.nginx_docker 2> /dev/null
+  ln -s ../../.. ${test_path}/roles/practical-ansible.${role_name} 2> /dev/null
   
   ansible_user=""
   . ${test_path}/.env &> /dev/null
