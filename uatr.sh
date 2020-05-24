@@ -6,7 +6,7 @@ loc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 echo "Using ${root}"
 
-tests=$(find $root -mindepth 1 -type d -name "test-*")
+tests=$(find $root -mindepth 1 -type d -name "test-*" | sort)
 tests_failed=0
 tests_succeeded=0
 tests_run=0
