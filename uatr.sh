@@ -48,12 +48,12 @@ else
   debug=0
 fi
 
-if [[ "${#tests}" == "0" ]]; then
+if [ ${#tests} -eq 0 ]; then
   echo "No tests found"
   exit 1
 fi
 
-if [[ "$debug" != "1" ]]; then
+if [ $debug -ne 1 ]; then
   echo "Preparing test environment container"
   $loc/prepare-env.sh &> ${env_log_path}
 fi
@@ -90,7 +90,7 @@ for test in $tests; do
   # Do not check for key when connecting locally
   export ANSIBLE_HOST_KEY_CHECKING=False
  
-  if [[ "$verbose" == "1" ]] || [[ "$debug" == "1" ]]; then
+  if [ $verbose -eq 1 ] || [ $debug -eq 1 ]; then
     params="-vvv"
   fi
 
@@ -106,7 +106,7 @@ for test in $tests; do
     fi
   fi
 
-  if [[ "$inspect" != "1" ]] && [[ "$debug" != "1" ]]; then
+  if [ $inspect -ne 1 ] && [ $debug -ne 1 ]; then
     docker stop ${test_name} &> /dev/null
   fi
 
@@ -128,7 +128,7 @@ for test in $tests; do
   rm ${test_path}/*.tar &> /dev/null
 done
 
-if [[ "$inspect" != "1" ]] && [[ "$debug" != "1" ]]; then
+if [ $inspect -ne 1 ] && [ $debug -ne 1 ]; then
   echo "Tearing down test environment"
   docker stop hosting-test &> ${env_log_path}
 fi
