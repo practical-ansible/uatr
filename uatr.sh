@@ -115,8 +115,7 @@ for test in $tests; do
     if [ $inverse_result -eq 1 ]; then
       echo Test should have failed, but it was successful instead
     fi
-    cat ${test_log_path} 1>&2
-    failed_list="${test_path} ${failed_list}"
+    failed_list="${test_log_path} ${failed_list}"
     ((tests_failed=tests_failed+1))
   else
     echo -e "\r\e[102m \e[30mPASS \e[0m ${test_name}"
@@ -141,8 +140,8 @@ else
   echo '========'
 
   for failed_test in $failed_list; do
-    echo Output of ${failed_test}
-    cat ${failed_test}/log
+    echo Output of $(basename ${failed_test})
+    cat ${failed_test}
   done
 
   echo
