@@ -3,6 +3,12 @@
 root=$(git rev-parse --show-toplevel)
 role_name=$(basename ${root})
 loc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+dir_log="/var/tmp/uatr/${role_name}"
+env_log_path="${dir_log}/env.log"
+
+if [ ! -d $dir_log ]; then
+  mkdir -p $dir_log
+fi
 
 echo "Using ${root}"
 
@@ -37,7 +43,7 @@ fi
 
 if [[ "$debug" != "1" ]]; then
   echo "Preparing test environment container"
-  $loc/prepare-env.sh &> log
+  $loc/prepare-env.sh &> ${env_log_path}
 fi
 
 PORT=$(docker port hosting-test 22 | cut -d ':' -f2)
@@ -45,6 +51,7 @@ PORT=$(docker port hosting-test 22 | cut -d ':' -f2)
 for test in $tests; do
   test_name=$(basename ${test})
   test_path=$(realpath ${test})
+  test_log_path="${dir_log}/${test_name}.log"
   echo -en "\e[43m \e[30mRUNS \e[0m ${test_name}"
 
   # Make role accessible
@@ -75,7 +82,7 @@ for test in $tests; do
     params="-vvv"
   fi
 
-  ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory $params &> ${test_path}/log
+  ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory $params &> ${test_log_path}
   test_result=$?
   inverse_result=$(echo ${test_name} | grep "^test-fails-" | wc -l)
 
@@ -96,7 +103,7 @@ for test in $tests; do
     if [ $inverse_result -eq 1 ]; then
       echo Test should have failed, but it was successful instead
     fi
-    cat ${test_path}/log 1>&2
+    cat ${test_log_path} 1>&2
     failed_list="${test_path} ${failed_list}"
     ((tests_failed=tests_failed+1))
   else
@@ -111,7 +118,7 @@ done
 
 if [[ "$inspect" != "1" ]] && [[ "$debug" != "1" ]]; then
   echo "Tearing down test environment"
-  docker stop hosting-test
+  docker stop hosting-test &> ${env_log_path}
 fi
 
 if [ $tests_failed -eq 0 ]; then
