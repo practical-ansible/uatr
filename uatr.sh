@@ -30,22 +30,33 @@ tests_succeeded=0
 tests_run=0
 failed_list=""
 
+debug=0
+inspect=0
+interactive=0
+verbose=0
+
+if [ -t 1 ]; then
+  interactive=1
+  ncolors=$(tput colors)
+  if [ -n "$ncolors" ] && [ $ncolors -ge 8 ]; then
+    bg_failure=$(tput setab 1)
+    bg_success=$(tput setab 2)
+    bg_pending=$(tput setab 3)
+    bg_reset=$(tput sgr0)
+    fg_inverse=$(tput setaf 0)
+  fi
+fi
+
 if [[ "$*" == *"--verbose"* ]]; then
   verbose=1
-else
-  verbose=0
 fi
 
 if [[ "$*" == *"--inspect"* ]]; then
   inspect=1
-else
-  inspect=0
 fi
 
 if [[ "$*" == *"--debug"* ]]; then
   debug=1
-else
-  debug=0
 fi
 
 if [ ${#tests} -eq 0 ]; then
@@ -64,7 +75,10 @@ for test in $tests; do
   test_name=$(basename ${test})
   test_path=$(realpath ${test})
   test_log_path="${dir_log}/${test_name}.log"
-  echo -en "\e[43m \e[30mRUNS \e[0m ${test_name}"
+
+  if [ $interactive -eq 1 ]; then
+    echo -en "${bg_pending} ${fg_inverse}RUNS ${bg_reset} ${test_name}"
+  fi
 
   # Make role accessible
   mkdir ${test_path}/roles 2> /dev/null
@@ -111,14 +125,14 @@ for test in $tests; do
   fi
 
   if [ $test_result -ne 0 ] ; then
-    echo -e "\r\e[101m \e[30mFAIL \e[0m ${test_name}"
+    echo -e "\r${bg_failure} ${fg_inverse}FAIL ${bg_reset} ${test_name}"
     if [ $inverse_result -eq 1 ]; then
       echo Test should have failed, but it was successful instead
     fi
     failed_list="${test_log_path} ${failed_list}"
     ((tests_failed=tests_failed+1))
   else
-    echo -e "\r\e[102m \e[30mPASS \e[0m ${test_name}"
+    echo -e "\r${bg_success} ${fg_inverse}PASS ${bg_reset} ${test_name}"
     ((tests_succeeded=tests_succeeded+1))
   fi
 
