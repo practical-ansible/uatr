@@ -49,8 +49,12 @@ for test in $tests; do
 
   # Make role accessible
   mkdir ${test_path}/roles 2> /dev/null
+
+  if [ -f ${test_path}/requirements.yml ]; then
+    ansible-galaxy install -r ${test_path}/requirements.yml -p ${test_path}/roles &> /dev/null
+  fi
   ln -s ../../.. ${test_path}/roles/practical-ansible.${role_name} 2> /dev/null
-  
+
   ansible_user=""
   . ${test_path}/.env &> /dev/null
 
@@ -73,6 +77,15 @@ for test in $tests; do
 
   ansible-playbook ${test_path}/playbook.yml -i ${test_path}/inventory $params &> ${test_path}/log
   test_result=$?
+  inverse_result=$(echo ${test_name} | grep "^test-fails-" | wc -l)
+
+  if [ $inverse_result -eq 1 ]; then
+    if [ $test_result -eq 0 ]; then
+      test_result=255
+    else
+      test_result=0
+    fi
+  fi
 
   if [[ "$inspect" != "1" ]] && [[ "$debug" != "1" ]]; then
     docker stop ${test_name} &> /dev/null
@@ -80,6 +93,9 @@ for test in $tests; do
 
   if [ $test_result -ne 0 ] ; then
     echo -e "\r\e[101m \e[30mFAIL \e[0m ${test_name}"
+    if [ $inverse_result -eq 1 ]; then
+      echo Test should have failed, but it was successful instead
+    fi
     cat ${test_path}/log 1>&2
     failed_list="${test_path} ${failed_list}"
     ((tests_failed=tests_failed+1))
