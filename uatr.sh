@@ -1,7 +1,10 @@
 #!/usr/bin/env bash
 
+function get_role_name {
+  echo $(cat $1/meta/main.yml | grep role_name | cut -d ':' -f2)
+}
+
 root=$(git rev-parse --show-toplevel)
-role_name=$(basename ${root})
 loc="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 dir_log="/var/tmp/uatr/${role_name}"
 env_log_path="${dir_log}/env.log"
@@ -11,6 +14,9 @@ if [ ! -d $dir_log ]; then
 fi
 
 echo "Using ${root}"
+
+role_name=$(get_role_name ${root})
+echo "Testing ${role_name}"
 
 tests=$(find $root -mindepth 1 -type d -name "test-*" | sort)
 tests_failed=0
