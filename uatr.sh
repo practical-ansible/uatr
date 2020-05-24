@@ -37,7 +37,7 @@ fi
 
 if [[ "$debug" != "1" ]]; then
   echo "Preparing test environment container"
-  $loc/prepare-env.sh
+  $loc/prepare-env.sh &> log
 fi
 
 PORT=$(docker port hosting-test 22 | cut -d ':' -f2)
