@@ -16,6 +16,12 @@ fi
 echo "Using ${root}"
 
 role_name=$(get_role_name ${root})
+
+if [[ "${role_name}" == "" ]]; then
+  echo "Could not determine tested role name"
+  exit 2
+fi
+
 echo "Testing ${role_name}"
 
 tests=$(find $root -mindepth 1 -type d -name "test-*" | sort)
