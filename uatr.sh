@@ -138,7 +138,6 @@ for test in $tests; do
 
   rm -r ${test_path}/roles &> /dev/null
   rm ${test_path}/inventory &> /dev/null
-  rm ${test_path}/*.tar &> /dev/null
 done
 
 if [ $inspect -ne 1 ] && [ $debug -ne 1 ]; then
